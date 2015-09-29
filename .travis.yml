@@ -1,2 +1,5 @@
 language: csharp
 solution: TeleBotTicTacToe.sln
+before_script:
+  - wget https://github.com/Naxiz/TeleBotDotNet/archive/master.tar.gz -O $PWD/../TeleBotDotNet.tar.gz
+  - tar -xvf $PWD/../TeleBotDotNet.tar.gz
