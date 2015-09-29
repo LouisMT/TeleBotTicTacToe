@@ -52,7 +52,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\Source\Repos\TeleBotDotNet2\TeleBotDotNet.csproj">
+    <ProjectReference Include="..\TeleBotDotNet\TeleBotDotNet.csproj">
       <Project>{7a89dee1-a41b-4a19-b890-390dd66340df}</Project>
       <Name>TeleBotDotNet</Name>
     </ProjectReference>
