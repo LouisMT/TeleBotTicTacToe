@@ -71,7 +71,7 @@ namespace TeleBotTicTacToe
                 fails[1] = fails[1] || BoardState[y, i] != state;
 
                 // Move is in diagonal, check current diagonal
-                fails[2] = fails[2] || (x == y && BoardState[i, i] != state);
+                fails[2] = fails[2] || x != y || BoardState[i, i] != state;
 
                 // Check current anti diagonal
                 fails[3] = fails[3] || BoardState[i, (BoardSize - 1) - i] != state;
