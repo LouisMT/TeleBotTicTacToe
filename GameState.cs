@@ -64,10 +64,10 @@ namespace TeleBotTicTacToe
 
             for (var i = 0; i < BoardSize; i++)
             {
-                // Check current column
+                // Check current row
                 fails[0] = fails[0] || BoardState[x, i] != state;
 
-                // Check current row
+                // Check current column
                 fails[1] = fails[1] || BoardState[i, y] != state;
 
                 // Move is in diagonal, check current diagonal
