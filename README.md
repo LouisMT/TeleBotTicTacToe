@@ -1,10 +1,10 @@
-# TeleBotTicTacToe
+# TeleBotTicTacToe [![Build Status](https://travis-ci.org/Naxiz/TeleBotTicTacToe.svg)](https://travis-ci.org/Naxiz/TeleBotTicTacToe)
 
 This is a simple Tic-tac-toe game for Telegram.
 
 ## Setup
 
-1. Clone the [TeleBotDotNet](/Naxiz/TeleBotDotNet)
+1. Clone the [TeleBotDotNet](https://github.com/Naxiz/TeleBotDotNet)
 2. Clone this repository
 3. Set the API key in `Program.cs`
 
