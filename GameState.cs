@@ -6,8 +6,8 @@ namespace TeleBotTicTacToe
 {
     public class GameState
     {
-        public string RedUsername { get; set; }
-        public string BlueUsername { get; set; }
+        public string RedUserName { get; set; }
+        public string BlueUserNameName { get; set; }
         public Player CurrentPlayerTurn { get; set; }
 
         private int MoveCount { get; set; }
@@ -16,22 +16,22 @@ namespace TeleBotTicTacToe
         private State[,] _boardState;
         public State[,] BoardState => _boardState ?? (_boardState = new State[BoardSize, BoardSize]);
 
-        public bool HasUser(params string[] usernames)
+        public bool HasUser(params string[] userNames)
         {
-            return usernames.Any(username =>
-                string.Equals(RedUsername, username, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(BlueUsername, username, StringComparison.OrdinalIgnoreCase));
+            return userNames.Any(userName =>
+                string.Equals(RedUserName, userName, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(BlueUserNameName, userName, StringComparison.OrdinalIgnoreCase));
         }
 
-        public bool IsTurnUser(string username)
+        public bool IsTurnUser(string userName)
         {
             switch (CurrentPlayerTurn)
             {
                 case Player.Red:
-                    return string.Equals(RedUsername, username, StringComparison.OrdinalIgnoreCase);
+                    return string.Equals(RedUserName, userName, StringComparison.OrdinalIgnoreCase);
 
                 case Player.Blue:
-                    return string.Equals(BlueUsername, username, StringComparison.OrdinalIgnoreCase);
+                    return string.Equals(BlueUserNameName, userName, StringComparison.OrdinalIgnoreCase);
 
                 default:
                     return false;
@@ -96,8 +96,8 @@ namespace TeleBotTicTacToe
         public string ToString(string additionalText)
         {
             var data = new StringBuilder();
-            data.AppendLine($"{Program.RedField} = {RedUsername}");
-            data.AppendLine($"{Program.BlueField} = {BlueUsername}");
+            data.AppendLine($"{Program.RedField} = {RedUserName}");
+            data.AppendLine($"{Program.BlueField} = {BlueUserNameName}");
 
             if (!string.IsNullOrEmpty(additionalText))
             {

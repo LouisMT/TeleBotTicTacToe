@@ -17,7 +17,7 @@ namespace TeleBotTicTacToe
         public const int DefaultGridSize = 3;
 
         private const int UpdateTimeoutInSeconds = 30;
-        private const string ApiKey = "109148704:AAFAS64QRgfev6iWoGkvhpLrmMTjuyi7X5g";
+        private const string ApiKey = "YOUR_API_KEY_HERE";
 
         private static TeleBot _bot;
         private static TeleBot Bot => _bot ?? (_bot = new TeleBot(ApiKey));
@@ -26,7 +26,7 @@ namespace TeleBotTicTacToe
         {
             new Command
             {
-                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUser>[a-z0-9]+))(?:\s+(?<GridSize>[1-9]))?\s*$", RegexOptions.IgnoreCase),
+                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUserName>[a-z0-9]+))(?:\s+(?<GridSize>[1-9]))?\s*$", RegexOptions.IgnoreCase),
                 CallBack = NewGame
             },
             new Command
@@ -49,32 +49,6 @@ namespace TeleBotTicTacToe
 
         static void Main()
         {
-            var x = new GameState
-            {
-                BoardSize = 9
-            };
-            x.BoardState[0, 0] = State.Red;
-            x.BoardState[1, 0] = State.Red;
-            x.BoardState[1, 1] = State.Red;
-            x.BoardState[1, 2] = State.Red;
-            x.BoardState[2, 2] = State.Red;
-            x.BoardState[3, 3] = State.Red;
-            x.BoardState[4, 4] = State.Red;
-            x.BoardState[5, 5] = State.Red;
-            x.BoardState[6, 6] = State.Red;
-            x.BoardState[6, 2] = State.Blue;
-            x.BoardState[6, 4] = State.Blue;
-            x.BoardState[7, 0] = State.Blue;
-            x.BoardState[0, 7] = State.Blue;
-            x.BoardState[1, 7] = State.Blue;
-            x.BoardState[2, 7] = State.Blue;
-            x.BoardState[3, 7] = State.Blue;
-            x.BoardState[4, 7] = State.Blue;
-            x.BoardState[6, 7] = State.Blue;
-            x.BoardState[7, 7] = State.Blue;
-            x.BoardState[8, 7] = State.Blue;
-            x.Play(5, 7, State.Blue);
-
             Console.Title = "TeleBotTicTacToe";
             Console.BackgroundColor = ConsoleColor.Blue;
             Console.ForegroundColor = ConsoleColor.White;
@@ -117,20 +91,20 @@ namespace TeleBotTicTacToe
 
             WriteLog("Processing message...");
 
-            var senderName = updateResponse.Message.From.UserName;
+            var senderUserName = updateResponse.Message.From.UserName;
             var chatId = updateResponse.Message?.UserChat?.Id ?? updateResponse.Message.GroupChat.Id;
 
             var command = Commands.FirstOrDefault(c => c.Check(updateResponse.Message.Text));
-            command?.CallBack(senderName, command.Matches, chatId, updateResponse);
+            command?.CallBack(senderUserName, command.Matches, chatId, updateResponse);
 
             WriteLog("Message processed!");
         }
 
-        private static void NewGame(string senderName, Match newGame, int chatId, UpdateResponse updateResponse)
+        private static void NewGame(string senderUserName, Match newGame, int chatId, UpdateResponse updateResponse)
         {
-            var blueUser = newGame.Groups["BlueUser"].Value;
+            var blueUserName = newGame.Groups["BlueUserName"].Value;
 
-            if (blueUser == senderName)
+            if (blueUserName == senderUserName)
             {
                 Bot.SendMessage(new SendMessageRequest
                 {
@@ -142,21 +116,21 @@ namespace TeleBotTicTacToe
             }
 
             var currentGame = GameStates.FirstOrDefault(c =>
-                c.HasUser(senderName, blueUser));
+                c.HasUser(senderUserName, blueUserName));
 
             if (currentGame != null)
             {
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    Text = $"@{senderName} or @{blueUser} is already playing a game!"
+                    Text = $"@{senderUserName} or @{blueUserName} is already playing a game!"
                 });
             }
 
             var newGameState = new GameState
             {
-                RedUsername = senderName,
-                BlueUsername = blueUser,
+                RedUserName = senderUserName,
+                BlueUserNameName = blueUserName,
                 BoardSize = newGame.Groups["GridSize"].Success ?
                     Convert.ToInt32(newGame.Groups["GridSize"].Value) : DefaultGridSize
             };
@@ -172,23 +146,23 @@ namespace TeleBotTicTacToe
             WriteLog("User started new game!");
         }
 
-        private static void Play(string senderName, Match play, int chatId, UpdateResponse updateResponse)
+        private static void Play(string senderUserName, Match play, int chatId, UpdateResponse updateResponse)
         {
             var row = Convert.ToInt32(play.Groups["Row"].Value) - 1;
             var column = Convert.ToInt32(play.Groups["Column"].Value) - 1;
-            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName) && row <= c.BoardSize && column <= c.BoardSize);
+            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderUserName) && row <= c.BoardSize && column <= c.BoardSize);
 
             if (currentGame != null &&
                 currentGame.BoardState[row, column] == State.None &&
-                currentGame.IsTurnUser(senderName))
+                currentGame.IsTurnUser(senderUserName))
             {
                 var playerState = PlayerState.Neutral;
 
-                if (string.Equals(currentGame.RedUsername, senderName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(currentGame.RedUserName, senderUserName, StringComparison.OrdinalIgnoreCase))
                 {
                     playerState = currentGame.Play(row, column, State.Red);
                 }
-                else if (string.Equals(currentGame.BlueUsername, senderName, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(currentGame.BlueUserNameName, senderUserName, StringComparison.OrdinalIgnoreCase))
                 {
                     playerState = currentGame.Play(row, column, State.Blue);
                 }
@@ -201,7 +175,7 @@ namespace TeleBotTicTacToe
                             Bot.SendMessage(new SendMessageRequest
                             {
                                 ChatId = chatId,
-                                Text = currentGame.ToString($"@{senderName} has won!")
+                                Text = currentGame.ToString($"@{senderUserName} has won!")
                             });
                             break;
                         case PlayerState.Draw:
@@ -231,10 +205,10 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    Text = $"@{senderName} is not in a game!"
+                    Text = $"@{senderUserName} is not in a game!"
                 });
             }
-            else if (!currentGame.IsTurnUser(senderName))
+            else if (!currentGame.IsTurnUser(senderUserName))
             {
                 Bot.SendMessage(new SendMessageRequest
                 {
@@ -254,9 +228,9 @@ namespace TeleBotTicTacToe
             WriteLog("User played!");
         }
 
-        private static void EndGame(string senderName, Match endGame, int chatId, UpdateResponse updateResponse)
+        private static void EndGame(string senderUserName, Match endGame, int chatId, UpdateResponse updateResponse)
         {
-            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName));
+            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderUserName));
 
             if (currentGame != null)
             {
@@ -278,9 +252,9 @@ namespace TeleBotTicTacToe
             }
         }
 
-        private static void GameState(string senderName, Match gameState, int chatId, UpdateResponse updateResponse)
+        private static void GameState(string senderUserName, Match gameState, int chatId, UpdateResponse updateResponse)
         {
-            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName));
+            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderUserName));
 
             if (currentGame != null)
             {
