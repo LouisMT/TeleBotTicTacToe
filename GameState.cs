@@ -62,7 +62,6 @@ namespace TeleBotTicTacToe
             // items is set to true it won't change back to false
             var fails = new bool[4];
 
-            // Check current column
             for (var i = 0; i < BoardSize; i++)
             {
                 // Check current column
