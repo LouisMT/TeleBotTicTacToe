@@ -109,7 +109,7 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    Text = "You can't play with youself! ( ͡° ͜ʖ ͡°)"
+                    Text = "You can't play with yourself! ( ͡° ͜ʖ ͡°)"
                 });
 
                 return;
