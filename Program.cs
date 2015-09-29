@@ -49,6 +49,32 @@ namespace TeleBotTicTacToe
 
         static void Main()
         {
+            var x = new GameState
+            {
+                BoardSize = 9
+            };
+            x.BoardState[0, 0] = State.Red;
+            x.BoardState[1, 0] = State.Red;
+            x.BoardState[1, 1] = State.Red;
+            x.BoardState[1, 2] = State.Red;
+            x.BoardState[2, 2] = State.Red;
+            x.BoardState[3, 3] = State.Red;
+            x.BoardState[4, 4] = State.Red;
+            x.BoardState[5, 5] = State.Red;
+            x.BoardState[6, 6] = State.Red;
+            x.BoardState[6, 2] = State.Blue;
+            x.BoardState[6, 4] = State.Blue;
+            x.BoardState[7, 0] = State.Blue;
+            x.BoardState[0, 7] = State.Blue;
+            x.BoardState[1, 7] = State.Blue;
+            x.BoardState[2, 7] = State.Blue;
+            x.BoardState[3, 7] = State.Blue;
+            x.BoardState[4, 7] = State.Blue;
+            x.BoardState[6, 7] = State.Blue;
+            x.BoardState[7, 7] = State.Blue;
+            x.BoardState[8, 7] = State.Blue;
+            x.Play(5, 7, State.Blue);
+
             Console.Title = "TeleBotTicTacToe";
             Console.BackgroundColor = ConsoleColor.Blue;
             Console.ForegroundColor = ConsoleColor.White;
