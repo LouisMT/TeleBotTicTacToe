@@ -14,8 +14,10 @@ namespace TeleBotTicTacToe
         public const string RedField = "🔴";
         public const string BlueField = "🔵";
 
+        public const int DefaultGridSize = 3;
+
         private const int UpdateTimeoutInSeconds = 30;
-        private const string ApiKey = "YOUR_API_KEY_HERE";
+        private const string ApiKey = "109148704:AAFAS64QRgfev6iWoGkvhpLrmMTjuyi7X5g";
 
         private static TeleBot _bot;
         private static TeleBot Bot => _bot ?? (_bot = new TeleBot(ApiKey));
@@ -24,18 +26,23 @@ namespace TeleBotTicTacToe
         {
             new Command
             {
-                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUser>[a-z0-9]+))\s*$", RegexOptions.IgnoreCase),
+                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUser>[a-z0-9]+))(?:\s+(?<GridSize>[1-9]))?\s*$", RegexOptions.IgnoreCase),
                 CallBack = NewGame
             },
             new Command
             {
-                Trigger = new Regex(@"^(?:\/play)\s+(?<Row>[1-3])\s+(?<Column>[1-3])\s*$", RegexOptions.IgnoreCase),
+                Trigger = new Regex(@"^(?:\/play)\s+(?<Row>[1-9][0-9]*)\s+(?<Column>[1-9][0-9]*)\s*$", RegexOptions.IgnoreCase),
                 CallBack = Play
             },
             new Command
             {
                 Trigger = new Regex(@"^(?:\/endgame)\s*$", RegexOptions.IgnoreCase),
                 CallBack = EndGame
+            },
+            new Command
+            {
+                Trigger = new Regex(@"^(?:\/gamestate)\s*$"),
+                CallBack = GameState
             }
         };
         private static List<GameState> GameStates { get; } = new List<GameState>();
@@ -95,23 +102,37 @@ namespace TeleBotTicTacToe
 
         private static void NewGame(string senderName, Match newGame, int chatId, UpdateResponse updateResponse)
         {
+            var blueUser = newGame.Groups["BlueUser"].Value;
+
+            if (blueUser == senderName)
+            {
+                Bot.SendMessage(new SendMessageRequest
+                {
+                    ChatId = chatId,
+                    Text = "You can't play with youself! ( ͡° ͜ʖ ͡°)"
+                });
+
+                return;
+            }
+
             var currentGame = GameStates.FirstOrDefault(c =>
-                c.HasUser(senderName, newGame.Groups["BlueUser"].Value));
+                c.HasUser(senderName, blueUser));
 
             if (currentGame != null)
             {
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
-                    Text = "You or your opponent is already playing a game!"
+                    Text = $"@{senderName} or @{blueUser} is already playing a game!"
                 });
             }
 
             var newGameState = new GameState
             {
-                RedUser = senderName,
-                BlueUser = newGame.Groups["BlueUser"].Value
+                RedUsername = senderName,
+                BlueUsername = blueUser,
+                BoardSize = newGame.Groups["GridSize"].Success ?
+                    Convert.ToInt32(newGame.Groups["GridSize"].Value) : DefaultGridSize
             };
 
             GameStates.Add(newGameState);
@@ -129,19 +150,46 @@ namespace TeleBotTicTacToe
         {
             var row = Convert.ToInt32(play.Groups["Row"].Value) - 1;
             var column = Convert.ToInt32(play.Groups["Column"].Value) - 1;
-            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName));
+            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName) && row <= c.BoardSize && column <= c.BoardSize);
 
             if (currentGame != null &&
                 currentGame.BoardState[row, column] == State.None &&
                 currentGame.IsTurnUser(senderName))
             {
-                if (string.Equals(currentGame.RedUser, senderName, StringComparison.OrdinalIgnoreCase))
+                var playerState = PlayerState.Neutral;
+
+                if (string.Equals(currentGame.RedUsername, senderName, StringComparison.OrdinalIgnoreCase))
                 {
-                    currentGame.BoardState[row, column] = State.Red;
+                    playerState = currentGame.Play(row, column, State.Red);
                 }
-                else if (string.Equals(currentGame.BlueUser, senderName, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(currentGame.BlueUsername, senderName, StringComparison.OrdinalIgnoreCase))
                 {
-                    currentGame.BoardState[row, column] = State.Blue;
+                    playerState = currentGame.Play(row, column, State.Blue);
+                }
+
+                if (playerState == PlayerState.Win || playerState == PlayerState.Draw)
+                {
+                    switch (playerState)
+                    {
+                        case PlayerState.Win:
+                            Bot.SendMessage(new SendMessageRequest
+                            {
+                                ChatId = chatId,
+                                Text = currentGame.ToString($"@{senderName} has won!")
+                            });
+                            break;
+                        case PlayerState.Draw:
+                            Bot.SendMessage(new SendMessageRequest
+                            {
+                                ChatId = chatId,
+                                Text = currentGame.ToString("Draw!")
+                            });
+                            break;
+                    }
+
+                    GameStates.RemoveAt(GameStates.IndexOf(currentGame));
+
+                    return;
                 }
 
                 currentGame.SwitchTurn();
@@ -157,16 +205,14 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
-                    Text = "You're not in a game!"
+                    Text = $"@{senderName} is not in a game!"
                 });
             }
-            else if (currentGame.IsTurnUser(senderName))
+            else if (!currentGame.IsTurnUser(senderName))
             {
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
                     Text = "It's not your turn!"
                 });
             }
@@ -175,7 +221,6 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
                     Text = "This position is already in use!"
                 });
             }
@@ -194,7 +239,6 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
                     Text = "Game has ben ended!"
                 });
             }
@@ -203,7 +247,28 @@ namespace TeleBotTicTacToe
                 Bot.SendMessage(new SendMessageRequest
                 {
                     ChatId = chatId,
-                    ReplyToMessageId = updateResponse.Message.MessageId,
+                    Text = "You're not in a game!"
+                });
+            }
+        }
+
+        private static void GameState(string senderName, Match gameState, int chatId, UpdateResponse updateResponse)
+        {
+            var currentGame = GameStates.FirstOrDefault(c => c.HasUser(senderName));
+
+            if (currentGame != null)
+            {
+                Bot.SendMessage(new SendMessageRequest
+                {
+                    ChatId = chatId,
+                    Text = currentGame.ToString()
+                });
+            }
+            else
+            {
+                Bot.SendMessage(new SendMessageRequest
+                {
+                    ChatId = chatId,
                     Text = "You're not in a game!"
                 });
             }

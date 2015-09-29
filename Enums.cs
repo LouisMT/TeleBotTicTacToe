@@ -7,9 +7,16 @@
         Blue
     }
 
-    public enum CurrentUser
+    public enum Player
     {
         Red,
         Blue
+    }
+
+    public enum PlayerState
+    {
+        Win,
+        Draw,
+        Neutral
     }
 }

@@ -6,29 +6,32 @@ namespace TeleBotTicTacToe
 {
     public class GameState
     {
-        public string RedUser { get; set; }
-        public string BlueUser { get; set; }
+        public string RedUsername { get; set; }
+        public string BlueUsername { get; set; }
+        public Player CurrentPlayerTurn { get; set; }
 
-        public CurrentUser CurrentUser { get; set; }
+        private int MoveCount { get; set; }
+        public int BoardSize { get; set; }
 
-        public State[,] BoardState { get; } = new State[3, 3];
+        private State[,] _boardState;
+        public State[,] BoardState => _boardState ?? (_boardState = new State[BoardSize, BoardSize]);
 
         public bool HasUser(params string[] usernames)
         {
             return usernames.Any(username =>
-                string.Equals(RedUser, username, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(BlueUser, username, StringComparison.OrdinalIgnoreCase));
+                string.Equals(RedUsername, username, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(BlueUsername, username, StringComparison.OrdinalIgnoreCase));
         }
 
         public bool IsTurnUser(string username)
         {
-            switch (CurrentUser)
+            switch (CurrentPlayerTurn)
             {
-                case CurrentUser.Red:
-                    return string.Equals(RedUser, username, StringComparison.OrdinalIgnoreCase);
+                case Player.Red:
+                    return string.Equals(RedUsername, username, StringComparison.OrdinalIgnoreCase);
 
-                case CurrentUser.Blue:
-                    return string.Equals(BlueUser, username, StringComparison.OrdinalIgnoreCase);
+                case Player.Blue:
+                    return string.Equals(BlueUsername, username, StringComparison.OrdinalIgnoreCase);
 
                 default:
                     return false;
@@ -37,28 +40,76 @@ namespace TeleBotTicTacToe
 
         public void SwitchTurn()
         {
-            switch (CurrentUser)
+            switch (CurrentPlayerTurn)
             {
-                case CurrentUser.Red:
-                    CurrentUser = CurrentUser.Blue;
+                case Player.Red:
+                    CurrentPlayerTurn = Player.Blue;
                     break;
 
-                case CurrentUser.Blue:
-                    CurrentUser = CurrentUser.Red;
+                case Player.Blue:
+                    CurrentPlayerTurn = Player.Red;
                     break;
             }
         }
 
+        public PlayerState Play(int x, int y, State state)
+        {
+            // Make the move
+            BoardState[x, y] = state;
+            MoveCount++;
+
+            // Assigning (self OR check) so whenever one of the
+            // items is set to true it won't change back to false
+            var fails = new bool[4];
+
+            // Check current column
+            for (var i = 0; i < BoardSize; i++)
+            {
+                // Check current column
+                fails[0] = fails[0] || BoardState[i, x] != state;
+
+                // Check current row
+                fails[1] = fails[1] || BoardState[y, i] != state;
+
+                // Move is in diagonal, check current diagonal
+                fails[2] = fails[2] || (x == y && BoardState[i, i] != state);
+
+                // Check current anti diagonal
+                fails[3] = fails[3] || BoardState[i, (BoardSize - 1) - i] != state;
+                
+                // All checks failed, so no winning combination
+                if (fails.All(f => f))
+                    break;
+
+                if (i == BoardSize - 1)
+                    return PlayerState.Win;
+            }
+
+            return MoveCount == BoardSize * BoardSize ?
+                PlayerState.Draw : PlayerState.Neutral;
+        }
+
         public override string ToString()
         {
-            var data = new StringBuilder();
-            data.AppendLine($"{Program.RedField} = {RedUser}");
-            data.AppendLine($"{Program.BlueField} = {BlueUser}");
+            return ToString(null);
+        }
 
-            for (var i = 0; i < 3; i++)
+        public string ToString(string additionalText)
+        {
+            var data = new StringBuilder();
+            data.AppendLine($"{Program.RedField} = {RedUsername}");
+            data.AppendLine($"{Program.BlueField} = {BlueUsername}");
+
+            if (!string.IsNullOrEmpty(additionalText))
             {
                 data.AppendLine();
-                for (var j = 0; j < 3; j++)
+                data.AppendLine(additionalText);
+            }
+
+            for (var i = 0; i < BoardSize; i++)
+            {
+                data.AppendLine();
+                for (var j = 0; j < BoardSize; j++)
                 {
                     switch (BoardState[i, j])
                     {
