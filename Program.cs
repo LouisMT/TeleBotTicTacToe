@@ -60,26 +60,27 @@ namespace TeleBotTicTacToe
             {
                 WriteLog($"Getting updates (offset {lastUpdateId + 1})...");
 
-                var updates = Bot.GetUpdates(new GetUpdatesRequest
+                try
                 {
-                    Offset = lastUpdateId + 1,
-                    Timeout = UpdateTimeoutInSeconds
-                });
+                    var updates = Bot.GetUpdates(new GetUpdatesRequest
+                    {
+                        Offset = lastUpdateId + 1,
+                        Timeout = UpdateTimeoutInSeconds
+                    });
 
-                if (updates.Result.Count < 0)
-                    continue;
+                    if (updates.Result.Count < 0)
+                        continue;
 
-                foreach (var update in updates.Result)
-                {
-                    try
+                    foreach (var update in updates.Result)
                     {
                         ProcessUpdate(update);
                         lastUpdateId = update.UpdateId;
                     }
-                    catch (Exception e)
-                    {
-                        WriteLog(e.Message);
-                    }
+                }
+                catch (Exception e)
+                {
+                    WriteLog("Exception occured!");
+                    WriteLog(e.Message);
                 }
             }
         }
@@ -125,6 +126,8 @@ namespace TeleBotTicTacToe
                     ChatId = chatId,
                     Text = $"@{senderUserName} or @{blueUserName} is already playing a game!"
                 });
+
+                return;
             }
 
             var newGameState = new GameState
@@ -276,7 +279,10 @@ namespace TeleBotTicTacToe
 
         private static void WriteLog(string message)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+            foreach (var line in message.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {line}");
+            }
         }
     }
 }
