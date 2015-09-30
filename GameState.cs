@@ -7,7 +7,7 @@ namespace TeleBotTicTacToe
     public class GameState
     {
         public string RedUserName { get; set; }
-        public string BlueUserNameName { get; set; }
+        public string BlueUserName { get; set; }
         public Player CurrentPlayerTurn { get; set; }
 
         private int MoveCount { get; set; }
@@ -20,7 +20,7 @@ namespace TeleBotTicTacToe
         {
             return userNames.Any(userName =>
                 string.Equals(RedUserName, userName, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(BlueUserNameName, userName, StringComparison.OrdinalIgnoreCase));
+                string.Equals(BlueUserName, userName, StringComparison.OrdinalIgnoreCase));
         }
 
         public bool IsTurnUser(string userName)
@@ -31,7 +31,7 @@ namespace TeleBotTicTacToe
                     return string.Equals(RedUserName, userName, StringComparison.OrdinalIgnoreCase);
 
                 case Player.Blue:
-                    return string.Equals(BlueUserNameName, userName, StringComparison.OrdinalIgnoreCase);
+                    return string.Equals(BlueUserName, userName, StringComparison.OrdinalIgnoreCase);
 
                 default:
                     return false;
@@ -75,7 +75,7 @@ namespace TeleBotTicTacToe
 
                 // Check current anti diagonal
                 fails[3] = fails[3] || BoardState[i, (BoardSize - 1) - i] != state;
-                
+
                 // All checks failed, so no winning combination
                 if (fails.All(f => f))
                     break;
@@ -97,7 +97,7 @@ namespace TeleBotTicTacToe
         {
             var data = new StringBuilder();
             data.AppendLine($"{Program.RedField} = {RedUserName}");
-            data.AppendLine($"{Program.BlueField} = {BlueUserNameName}");
+            data.AppendLine($"{Program.BlueField} = {BlueUserName}");
 
             if (!string.IsNullOrEmpty(additionalText))
             {

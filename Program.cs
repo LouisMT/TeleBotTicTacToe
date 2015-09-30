@@ -17,7 +17,8 @@ namespace TeleBotTicTacToe
         public const int DefaultGridSize = 3;
 
         private const int UpdateTimeoutInSeconds = 30;
-        private const string ApiKey = "YOUR_API_KEY_HERE";
+        private const string BotUserName = "YOUR_BOT_NAME";
+        private const string ApiKey = "YOUR_BOT_API_KEY";
 
         private static TeleBot _bot;
         private static TeleBot Bot => _bot ?? (_bot = new TeleBot(ApiKey));
@@ -104,6 +105,8 @@ namespace TeleBotTicTacToe
         private static void NewGame(string senderUserName, Match newGame, int chatId, UpdateResponse updateResponse)
         {
             var blueUserName = newGame.Groups["BlueUserName"].Value;
+            var boardSize = newGame.Groups["GridSize"].Success
+                ? Convert.ToInt32(newGame.Groups["GridSize"].Value) : DefaultGridSize;
 
             if (blueUserName == senderUserName)
             {
@@ -111,6 +114,28 @@ namespace TeleBotTicTacToe
                 {
                     ChatId = chatId,
                     Text = "You can't play with yourself! ( ͡° ͜ʖ ͡°)"
+                });
+
+                return;
+            }
+            else if (blueUserName == BotUserName)
+            {
+                var winningGameState = new GameState
+                {
+                    RedUserName = senderUserName,
+                    BlueUserName = blueUserName,
+                    BoardSize = boardSize
+                };
+
+                for (var i = 0; i < boardSize; i++)
+                {
+                    winningGameState.BoardState[i, i] = State.Blue;
+                }
+
+                Bot.SendMessage(new SendMessageRequest
+                {
+                    ChatId = chatId,
+                    Text = winningGameState.ToString("I win! 😈")
                 });
 
                 return;
@@ -133,9 +158,8 @@ namespace TeleBotTicTacToe
             var newGameState = new GameState
             {
                 RedUserName = senderUserName,
-                BlueUserNameName = blueUserName,
-                BoardSize = newGame.Groups["GridSize"].Success ?
-                    Convert.ToInt32(newGame.Groups["GridSize"].Value) : DefaultGridSize
+                BlueUserName = blueUserName,
+                BoardSize = boardSize
             };
 
             GameStates.Add(newGameState);
@@ -165,7 +189,7 @@ namespace TeleBotTicTacToe
                 {
                     playerState = currentGame.Play(row, column, State.Red);
                 }
-                else if (string.Equals(currentGame.BlueUserNameName, senderUserName, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(currentGame.BlueUserName, senderUserName, StringComparison.OrdinalIgnoreCase))
                 {
                     playerState = currentGame.Play(row, column, State.Blue);
                 }
