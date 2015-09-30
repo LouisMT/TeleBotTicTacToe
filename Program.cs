@@ -27,7 +27,7 @@ namespace TeleBotTicTacToe
         {
             new Command
             {
-                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUserName>[a-z0-9]+))(?:\s+(?<GridSize>[1-9]))?\s*$", RegexOptions.IgnoreCase),
+                Trigger = new Regex(@"^(?:\/newgame)\s+(?:@(?<BlueUserName>[a-z0-9_]{5,32}))(?:\s+(?<GridSize>[1-9]))?\s*$", RegexOptions.IgnoreCase),
                 CallBack = NewGame
             },
             new Command

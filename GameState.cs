@@ -96,8 +96,8 @@ namespace TeleBotTicTacToe
         public string ToString(string additionalText)
         {
             var data = new StringBuilder();
-            data.AppendLine($"{Program.RedField} = {RedUserName}");
-            data.AppendLine($"{Program.BlueField} = {BlueUserName}");
+            data.AppendLine($"{Program.RedField} = @{RedUserName}");
+            data.AppendLine($"{Program.BlueField} = @{BlueUserName}");
 
             if (!string.IsNullOrEmpty(additionalText))
             {
