@@ -94,7 +94,7 @@ namespace TeleBotTicTacToe
             WriteLog("Processing message...");
 
             var senderUserName = updateResponse.Message.From.UserName;
-            var chatId = updateResponse.Message?.UserChat?.Id ?? updateResponse.Message.GroupChat.Id;
+            var chatId = updateResponse.Message.Chat.Id;
 
             var command = Commands.FirstOrDefault(c => c.Check(updateResponse.Message.Text));
             command?.CallBack(senderUserName, command.Matches, chatId, updateResponse);
